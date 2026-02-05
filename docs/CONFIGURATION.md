@@ -1,6 +1,6 @@
 # Configuration Guide
 
-This guide covers the optional features and their configuration in Morphic.
+This guide covers the optional features and their configuration in Sally.
 
 ## Table of Contents
 
@@ -11,34 +11,24 @@ This guide covers the optional features and their configuration in Morphic.
 
 ## Chat History Storage
 
-### Using Upstash Redis (Recommended for production)
+### Using Supabase (Recommended for production)
 
-Follow the detailed setup guide at [Building your own RAG chatbot with Upstash](https://upstash.com/blog/rag-chatbot-upstash#setting-up-upstash-redis)
-
-1. Create a database at [Upstash Console](https://console.upstash.com/redis)
-2. Navigate to the Details tab and find the "Connect your database" section
-3. Copy the REST API credentials from the .env section
-4. Configure your `.env.local`:
+1. Create a project at [Supabase Console](https://supabase.com/dashboard)
+2. Set up your database tables (see schema in project)
+3. Configure your `.env.local`:
 
 ```bash
-NEXT_PUBLIC_ENABLE_SAVE_CHAT_HISTORY=true
-USE_LOCAL_REDIS=false
-UPSTASH_REDIS_REST_URL=[YOUR_UPSTASH_REDIS_REST_URL]
-UPSTASH_REDIS_REST_TOKEN=[YOUR_UPSTASH_REDIS_REST_TOKEN]
-```
-
-### Using Local Redis
-
-1. Ensure Redis is installed and running locally
-2. Configure your `.env.local`:
-
-```bash
-NEXT_PUBLIC_ENABLE_SAVE_CHAT_HISTORY=true
-USE_LOCAL_REDIS=true
-LOCAL_REDIS_URL=redis://localhost:6379
+NEXT_PUBLIC_SUPABASE_URL=[YOUR_SUPABASE_URL]
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
 ```
 
 ## Search Providers
+
+### Tavily Configuration
+
+```bash
+TAVILY_API_KEY=[YOUR_API_KEY]
+```
 
 ### SearXNG Configuration
 
@@ -89,7 +79,6 @@ SEARXNG_LIMITER=false  # Enable to limit requests per IP
   - `advanced`: Includes content crawling and relevance scoring
 - `SEARXNG_MAX_RESULTS`: Maximum results to return
 - `SEARXNG_CRAWL_MULTIPLIER`: In advanced mode, determines how many results to crawl
-  - Example: If `MAX_RESULTS=10` and `CRAWL_MULTIPLIER=4`, up to 40 results will be crawled
 
 #### Customizing SearXNG
 
@@ -98,14 +87,6 @@ You can modify `searxng-settings.yml` to:
 - Enable/disable specific search engines
 - Change UI settings
 - Adjust server options
-
-Example of disabling specific engines:
-
-```yaml
-engines:
-  - name: wikidata
-    disabled: true
-```
 
 For detailed configuration options, refer to the [SearXNG documentation](https://docs.searxng.org/admin/settings/settings.html#settings-yml)
 
@@ -123,7 +104,7 @@ docker-compose logs searxng
 
 Models are configured in `public/config/models.json`. Each model requires its corresponding API key to be set in the environment variables.
 
-> **Note:** Ollama models are discovered dynamically at runtime when an Ollama server is available. Only models that expose the `tools` capability will appear in Morphic, so you no longer need to keep placeholder Ollama entries in `models.json`.
+> **Note:** Ollama models are discovered dynamically at runtime when an Ollama server is available. Only models that expose the `tools` capability will appear in Sally.
 
 ### Model Configuration
 
@@ -139,7 +120,7 @@ The `models.json` file contains an array of model configurations with the follow
       "providerId": "provider-id",
       "enabled": true,
       "toolCallType": "native|manual",
-      "toolCallModel": "tool-call-model-id" // optional, only needed if toolCallType is "manual" and you need to specify a different model for tool calls
+      "toolCallModel": "tool-call-model-id"
     }
   ]
 }
@@ -171,7 +152,7 @@ GROQ_API_KEY=[YOUR_API_KEY]
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-When this variable is set, Morphic will automatically discover Ollama models that advertise the `tools` capability. Models without this capability are ignored, and no static configuration in `models.json` is required unless you need to override specific settings.
+When this variable is set, Sally will automatically discover Ollama models that advertise the `tools` capability.
 
 ### Azure OpenAI
 

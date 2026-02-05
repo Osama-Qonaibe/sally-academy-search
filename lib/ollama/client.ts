@@ -7,22 +7,28 @@ import {
 
 export class OllamaClient {
   private baseUrl: string
+  private apiKey?: string
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, apiKey?: string) {
     this.baseUrl = baseUrl
+    this.apiKey = apiKey
   }
 
-  /**
-   * Get all available models from Ollama instance
-   * Uses GET /api/models endpoint for fast model listing
-   */
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      Accept: 'application/json'
+    }
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`
+    }
+    return headers
+  }
+
   async getModels(): Promise<OllamaModel[]> {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         cache: 'no-store',
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: this.getHeaders()
       })
 
       if (!response.ok) {
@@ -39,10 +45,6 @@ export class OllamaClient {
     }
   }
 
-  /**
-   * Get detailed model capabilities from Ollama instance
-   * Uses POST /api/show endpoint for detailed model information
-   */
   async getModelCapabilities(
     modelName: string
   ): Promise<OllamaModelCapabilities> {
@@ -51,7 +53,7 @@ export class OllamaClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Accept: 'application/json'
+          ...this.getHeaders()
         },
         body: JSON.stringify({ name: modelName })
       })
@@ -75,14 +77,12 @@ export class OllamaClient {
     }
   }
 
-  /**
-   * Check if Ollama instance is available
-   */
   async isAvailable(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: 'HEAD',
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: this.getHeaders()
       })
       return response.ok
     } catch (error) {

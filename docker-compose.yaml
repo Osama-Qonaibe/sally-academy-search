@@ -1,19 +1,17 @@
-# Docker Compose configuration for the morphic-stack development environment
-
-name: morphic-stack
+name: sally-stack
 services:
-  morphic:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/morphic}:latest
+  sally:
+    image: ghcr.io/${GITHUB_REPOSITORY:-osama-qonaibe/sally-academy-search}:latest
     command: bun start -H 0.0.0.0
     build:
       context: .
       dockerfile: Dockerfile
       cache_from:
-        - morphic:builder
-        - morphic:latest
-    env_file: .env.local # Load environment variables
+        - sally:builder
+        - sally:latest
+    env_file: .env.local
     ports:
-      - '3000:3000' # Maps port 3000 on the host to port 3000 in the container.
+      - '3000:3000'
     depends_on:
       - redis
       - searxng
@@ -30,7 +28,7 @@ services:
     image: searxng/searxng
     ports:
       - '${SEARXNG_PORT:-8080}:8080'
-    env_file: .env.local # can remove if you want to use env variables or in settings.yml
+    env_file: .env.local
     volumes:
       - ./searxng-limiter.toml:/etc/searxng/limiter.toml
       - ./searxng-settings.yml:/etc/searxng/settings.yml

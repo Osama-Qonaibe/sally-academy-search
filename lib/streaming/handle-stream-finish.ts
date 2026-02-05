@@ -2,6 +2,7 @@ import { CoreMessage, DataStreamWriter, JSONValue, Message } from 'ai'
 
 import { getChat, saveChat } from '@/lib/actions/chat'
 import { generateRelatedQuestions } from '@/lib/agents/generate-related-questions'
+import { generateTitle } from '@/lib/agents/generate-title'
 import { ExtendedCoreMessage } from '@/lib/types'
 import { convertToExtendedCoreMessages } from '@/lib/utils'
 
@@ -31,20 +32,17 @@ export async function handleStreamFinish({
     let allAnnotations = [...annotations]
 
     if (!skipRelatedQuestions) {
-      // Notify related questions loading
       const relatedQuestionsAnnotation: JSONValue = {
         type: 'related-questions',
         data: { items: [] }
       }
       dataStream.writeMessageAnnotation(relatedQuestionsAnnotation)
 
-      // Generate related questions
       const relatedQuestions = await generateRelatedQuestions(
         responseMessages,
         model
       )
 
-      // Create and add related questions annotation
       const updatedRelatedQuestionsAnnotation: ExtendedCoreMessage = {
         role: 'data',
         content: {
@@ -59,11 +57,10 @@ export async function handleStreamFinish({
       allAnnotations.push(updatedRelatedQuestionsAnnotation)
     }
 
-    // Create the message to save
     const generatedMessages = [
       ...extendedCoreMessages,
       ...responseMessages.slice(0, -1),
-      ...allAnnotations, // Add annotations before the last message
+      ...allAnnotations,
       ...responseMessages.slice(-1)
     ] as ExtendedCoreMessage[]
 
@@ -71,20 +68,30 @@ export async function handleStreamFinish({
       return
     }
 
-    // Get the chat from the database if it exists, otherwise create a new one
-    const savedChat = (await getChat(chatId, userId)) ?? {
-      messages: [],
-      createdAt: new Date(),
-      userId: userId,
-      path: `/search/${chatId}`,
-      title: originalMessages[0].content,
-      id: chatId
+    const savedChat = await getChat(chatId, userId)
+    
+    let chatTitle = ''
+    if (!savedChat) {
+      const firstUserMessage = originalMessages.find(m => m.role === 'user')
+      if (firstUserMessage) {
+        const content = typeof firstUserMessage.content === 'string' 
+          ? firstUserMessage.content 
+          : JSON.stringify(firstUserMessage.content)
+        chatTitle = await generateTitle(content, model)
+      } else {
+        chatTitle = 'New Chat'
+      }
     }
 
-    // Save chat with complete response and related questions
     await saveChat(
       {
-        ...savedChat,
+        ...(savedChat || {
+          id: chatId,
+          userId: userId,
+          path: `/search/${chatId}`,
+          createdAt: new Date()
+        }),
+        title: savedChat?.title || chatTitle,
         messages: generatedMessages
       },
       userId

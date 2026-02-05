@@ -26,7 +26,7 @@ export class OllamaClient {
 
   async getModels(): Promise<OllamaModel[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/list`, {
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
         cache: 'no-store',
         headers: this.getHeaders()
       })
@@ -79,7 +79,7 @@ export class OllamaClient {
 
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/list`, {
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
         cache: 'no-store',
         headers: this.getHeaders()
       })

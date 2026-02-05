@@ -9,8 +9,8 @@ import { isProviderEnabled } from '@/lib/utils/registry'
 export const maxDuration = 30
 
 const DEFAULT_MODEL: Model = {
-  id: 'llama-3.3-70b-versatile',
-  name: 'Llama 3.3 70B',
+  id: 'llama-3.1-8b-instant',
+  name: 'Llama 3.1 8B',
   provider: 'Groq',
   providerId: 'groq',
   enabled: true,

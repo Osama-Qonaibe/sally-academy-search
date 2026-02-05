@@ -164,18 +164,22 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
   try {
     const supabase = await createClient()
     
-    const { data: existingChat } = await supabase
+    const { data: existingChat, error: checkError } = await supabase
       .from('chats')
       .select('id')
       .eq('id', chat.id)
-      .single()
+      .maybeSingle()
 
+    if (checkError) {
+      console.error('Error checking existing chat:', checkError)
+    }
+
+    const now = new Date().toISOString()
     const chatData = {
       id: chat.id,
       user_id: userId,
-      title: chat.title,
-      created_at: chat.createdAt || new Date(),
-      updated_at: new Date()
+      title: chat.title || 'New Chat',
+      updated_at: now
     }
 
     if (existingChat) {
@@ -184,34 +188,49 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
         .update(chatData)
         .eq('id', chat.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('Error updating chat:', updateError)
+        throw updateError
+      }
     } else {
       const { error: insertError } = await supabase
         .from('chats')
-        .insert(chatData)
+        .insert({
+          ...chatData,
+          created_at: now
+        })
 
-      if (insertError) throw insertError
+      if (insertError) {
+        console.error('Error inserting chat:', insertError)
+        throw insertError
+      }
     }
 
     if (chat.messages && chat.messages.length > 0) {
-      const messagesToInsert = chat.messages.map((msg, index) => {
-        const msgId = `${chat.id}-${index}-${Date.now()}`
-        return {
-          id: msgId,
-          chat_id: chat.id,
-          role: msg.role,
-          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-          created_at: new Date()
-        }
-      })
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('chat_id', chat.id)
+
+      const messagesToInsert = chat.messages.map((msg, index) => ({
+        chat_id: chat.id,
+        role: msg.role,
+        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+        created_at: now
+      }))
 
       const { error: msgError } = await supabase
         .from('messages')
-        .upsert(messagesToInsert, { onConflict: 'id' })
+        .insert(messagesToInsert)
 
-      if (msgError) throw msgError
+      if (msgError) {
+        console.error('Error inserting messages:', msgError)
+        throw msgError
+      }
     }
 
+    revalidatePath('/')
+    revalidatePath(`/search/${chat.id}`)
     return { success: true }
   } catch (error) {
     console.error('Error saving chat:', error)
@@ -264,7 +283,7 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
     
     const { data, error } = await supabase
       .from('chats')
-      .update({ updated_at: new Date() })
+      .update({ updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', userId)
       .select()

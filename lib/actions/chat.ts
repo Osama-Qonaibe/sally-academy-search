@@ -95,7 +95,6 @@ export async function getChat(id: string, userId: string = 'anonymous') {
       title: chatData.title,
       userId: chatData.user_id,
       messages: (messages || []).map(msg => ({
-        id: msg.id,
         role: msg.role,
         content: msg.content
       })),
@@ -195,36 +194,22 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
     }
 
     if (chat.messages && chat.messages.length > 0) {
-      const { data: existingMessages } = await supabase
+      const messagesToInsert = chat.messages.map((msg, index) => {
+        const msgId = `${chat.id}-${index}-${Date.now()}`
+        return {
+          id: msgId,
+          chat_id: chat.id,
+          role: msg.role,
+          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+          created_at: new Date()
+        }
+      })
+
+      const { error: msgError } = await supabase
         .from('messages')
-        .select('id')
-        .eq('chat_id', chat.id)
+        .upsert(messagesToInsert, { onConflict: 'id' })
 
-      const existingIds = new Set((existingMessages || []).map(m => m.id))
-      
-      const newMessages = chat.messages
-        .filter(msg => {
-          const msgId = typeof msg.id === 'string' ? msg.id : `${chat.id}-${msg.role}-${Date.now()}`
-          return !existingIds.has(msgId)
-        })
-        .map((msg, index) => {
-          const msgId = typeof msg.id === 'string' ? msg.id : `${chat.id}-${msg.role}-${Date.now()}-${index}`
-          return {
-            id: msgId,
-            chat_id: chat.id,
-            role: msg.role,
-            content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-            created_at: new Date()
-          }
-        })
-
-      if (newMessages.length > 0) {
-        const { error: msgError } = await supabase
-          .from('messages')
-          .insert(newMessages)
-
-        if (msgError) throw msgError
-      }
+      if (msgError) throw msgError
     }
 
     return { success: true }
@@ -258,7 +243,6 @@ export async function getSharedChat(id: string) {
       ...chatData,
       userId: chatData.user_id,
       messages: (messages || []).map(msg => ({
-        id: msg.id,
         role: msg.role,
         content: msg.content
       })),

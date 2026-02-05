@@ -14,10 +14,10 @@ import {
 import { createOllama } from 'ollama-ai-provider'
 
 export const registry = createProviderRegistry({
+  groq,
   openai,
   anthropic,
   google,
-  groq,
   ollama: createOllama({
     baseURL: `${process.env.OLLAMA_BASE_URL}/api`
   }),
@@ -48,7 +48,6 @@ export function getModel(model: string) {
       baseURL: `${process.env.OLLAMA_BASE_URL}/api`
     })
 
-    // if model is deepseek-r1, add reasoning middleware
     if (model.includes('deepseek-r1')) {
       return wrapLanguageModel({
         model: ollama(modelName),
@@ -58,13 +57,11 @@ export function getModel(model: string) {
       })
     }
 
-    // if ollama provider, set simulateStreaming to true
     return ollama(modelName, {
       simulateStreaming: true
     })
   }
 
-  // if model is groq and includes deepseek-r1, add reasoning middleware
   if (model.includes('groq') && model.includes('deepseek-r1')) {
     return wrapLanguageModel({
       model: groq(modelName),
@@ -74,7 +71,6 @@ export function getModel(model: string) {
     })
   }
 
-  // if model is fireworks and includes deepseek-r1, add reasoning middleware
   if (model.includes('fireworks') && model.includes('deepseek-r1')) {
     return wrapLanguageModel({
       model: fireworks(modelName),
@@ -91,14 +87,14 @@ export function getModel(model: string) {
 
 export function isProviderEnabled(providerId: string): boolean {
   switch (providerId) {
+    case 'groq':
+      return !!process.env.GROQ_API_KEY
     case 'openai':
       return !!process.env.OPENAI_API_KEY
     case 'anthropic':
       return !!process.env.ANTHROPIC_API_KEY
     case 'google':
       return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY
-    case 'groq':
-      return !!process.env.GROQ_API_KEY
     case 'ollama':
       return !!process.env.OLLAMA_BASE_URL
     case 'azure':
@@ -138,7 +134,7 @@ export function getToolCallModel(model?: string) {
     case 'google':
       return getModel('google:gemini-2.0-flash')
     default:
-      return getModel('openai:gpt-4o-mini')
+      return getModel('groq:llama-3.3-70b-versatile')
   }
 }
 
@@ -147,7 +143,6 @@ export function isToolCallSupported(model?: string) {
   const modelName = modelNameParts.join(':')
 
   if (provider === 'ollama') {
-    // Ollama models are dynamically checked for tools capability
     return true
   }
 
@@ -155,8 +150,6 @@ export function isToolCallSupported(model?: string) {
     return false
   }
 
-  // Deepseek R1 is not supported
-  // Deepseek v3's tool call is unstable, so we include it in the list
   return !modelName?.includes('deepseek')
 }
 

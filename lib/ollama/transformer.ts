@@ -2,10 +2,6 @@ import { Model } from '@/lib/types/models'
 
 import { OllamaModel, OllamaModelCapabilities } from './types'
 
-/**
- * Transform Ollama model to Morphic Model format
- * Only includes models with tools capability (required for Morphic)
- */
 export function transformOllamaModel(
   ollamaModel: OllamaModel,
   capabilities?: OllamaModelCapabilities
@@ -29,10 +25,6 @@ export function transformOllamaModel(
   }
 }
 
-/**
- * Format model name for display
- * Convert "llama3.2:latest" to "Llama 3.2 Latest"
- */
 function formatModelName(name: string): string {
   return name
     .replace(/[:]/g, ' ')

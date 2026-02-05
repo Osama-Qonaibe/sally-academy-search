@@ -1,6 +1,6 @@
-# Morphic
+# Sally Academy Search
 
-An AI-powered search engine with a generative UI.
+محرك بحث ذكي مدعوم بالذكاء الاصطناعي لأكاديمية سالي
 
 ![capture](/public/screenshot-2025-05-04.png)
 
@@ -10,20 +10,7 @@ An AI-powered search engine with a generative UI.
 - 🧱 [Stack](#-stack)
 - 🚀 [Quickstart](#-quickstart)
 - 🌐 [Deploy](#-deploy)
-- 🔎 [Search Engine](#-search-engine)
-- 💙 [Sponsors](#-sponsors)
-- 👥 [Contributing](#-contributing)
 - 📄 [License](#-license)
-
-📝 Explore AI-generated documentation on [DeepWiki](https://deepwiki.com/miurla/morphic)
-
-## 🧪 Try v1.0.0 Beta
-
-Want to experience the next generation of Morphic? The v1.0.0 beta is now available at [beta.morphic.sh](https://beta.morphic.sh)!
-
-This major update includes exciting new features like advanced search modes, PostgreSQL database, enhanced UI, and much more. Learn more about what's new in [Issue #680](https://github.com/miurla/morphic/issues/680).
-
-Your feedback helps shape the future of Morphic!
 
 ## 🛠 Features
 
@@ -88,7 +75,7 @@ Models are configured in `public/config/models.json`. Each model requires its co
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Vercel AI SDK](https://sdk.vercel.ai/docs) - Text streaming / Generative UI
 
-### Authentication & Authorization (Updated Category)
+### Authentication & Authorization
 
 - [Supabase](https://supabase.com/) - User authentication and backend services
 
@@ -99,7 +86,7 @@ Models are configured in `public/config/models.json`. Each model requires its co
 - Alternative providers:
   - [SearXNG](https://docs.searxng.org/) - Self-hosted search
   - [Exa](https://exa.ai/) - Neural search
-  - [Firecrawl](https://firecrawl.dev/) - Web, news, and image search with crawling, scraping, LLM-ready extraction, and [open source](https://github.com/firecrawl/firecrawl).
+  - [Firecrawl](https://firecrawl.dev/) - Web, news, and image search with crawling, scraping, LLM-ready extraction
 
 ### Data Storage
 
@@ -120,13 +107,13 @@ Models are configured in `public/config/models.json`. Each model requires its co
 Fork the repo to your Github account, then run the following command to clone the repo:
 
 ```bash
-git clone git@github.com:[YOUR_GITHUB_ACCOUNT]/morphic.git
+git clone git@github.com:[YOUR_GITHUB_ACCOUNT]/sally-academy-search.git
 ```
 
 ### 2. Install dependencies
 
 ```bash
-cd morphic
+cd sally-academy-search
 bun install
 ```
 
@@ -164,73 +151,33 @@ Visit http://localhost:3000 in your browser.
 
 ## 🌐 Deploy
 
-Host your own live version of Morphic with Vercel, Cloudflare Pages, or Docker.
+Host your own live version of Sally Academy Search with Vercel, Cloudflare Pages, or Docker.
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmiurla%2Fmorphic&env=OPENAI_API_KEY,TAVILY_API_KEY,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FOsama-Qonaibe%2Fsally-academy-search&env=OPENAI_API_KEY,TAVILY_API_KEY,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN)
 
 ### Docker Prebuilt Image
-
-Prebuilt Docker images are available on GitHub Container Registry:
-
-```bash
-docker pull ghcr.io/miurla/morphic:latest
-```
 
 You can use it with docker-compose:
 
 ```yaml
 services:
-  morphic:
-    image: ghcr.io/miurla/morphic:latest
+  sally-search:
+    image: ghcr.io/osama-qonaibe/sally-academy-search:latest
     env_file: .env.local
     ports:
       - '3000:3000'
     volumes:
-      - ./models.json:/app/public/config/models.json # Optional: Override default model configuration
+      - ./models.json:/app/public/config/models.json
 ```
 
 The default model configuration is located at `public/config/models.json`. For Docker deployment, you can create `models.json` alongside `.env.local` to override the default configuration.
 
-## 🔎 Search Engine
-
-### Setting up the Search Engine in Your Browser
-
-If you want to use Morphic as a search engine in your browser, follow these steps:
-
-1. Open your browser settings.
-2. Navigate to the search engine settings section.
-3. Select "Manage search engines and site search".
-4. Under "Site search", click on "Add".
-5. Fill in the fields as follows:
-   - **Search engine**: Morphic
-   - **Shortcut**: morphic
-   - **URL with %s in place of query**: `https://morphic.sh/search?q=%s`
-6. Click "Add" to save the new search engine.
-7. Find "Morphic" in the list of site search, click on the three dots next to it, and select "Make default".
-
-This will allow you to use Morphic as your default search engine in the browser.
-
-## 💙 Sponsors
-
-This project is proudly supported by:
-
-<a href="https://vercel.com/oss">
-  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
-</a>
-
-## 👥 Contributing
-
-We welcome contributions to Morphic! Whether it's bug reports, feature requests, or pull requests, all contributions are appreciated.
-
-Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
-
-- How to submit issues
-- How to submit pull requests
-- Commit message conventions
-- Development setup
-
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Developed for Sally Academy**

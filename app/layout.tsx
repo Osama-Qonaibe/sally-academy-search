@@ -21,12 +21,12 @@ const fontSans = FontSans({
   variable: '--font-sans'
 })
 
-const title = 'Morphic'
+const title = 'Sally'
 const description =
-  'A fully open-source AI-powered answer engine with a generative UI.'
+  'AI-powered search engine with conversational interface and intelligent answers.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://morphic.sh'),
+  metadataBase: new URL('https://sally-academy-search.vercel.app'),
   title,
   description,
   openGraph: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title,
     description,
     card: 'summary_large_image',
-    creator: '@miiura'
+    creator: '@sally'
   }
 }
 

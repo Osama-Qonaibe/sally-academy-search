@@ -5,12 +5,14 @@ import { transformOllamaModel } from '@/lib/ollama/transformer'
 
 export async function GET() {
   const ollamaUrl = process.env.OLLAMA_BASE_URL
+  const ollamaApiKey = process.env.OLLAMA_API_KEY
+  
   if (!ollamaUrl) {
     return NextResponse.json({ models: [] })
   }
 
   try {
-    const client = new OllamaClient(ollamaUrl)
+    const client = new OllamaClient(ollamaUrl, ollamaApiKey)
     const ollamaModels = await client.getModels()
 
     const models = []
@@ -22,7 +24,6 @@ export async function GET() {
           models.push(transformedModel)
         }
       } catch {
-        // Skip models that fail capability detection
         continue
       }
     }

@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Docker
 
 - `docker compose up -d` - Run the application with Docker
-- `docker pull ghcr.io/miurla/morphic:latest` - Pull prebuilt Docker image
+- `docker pull ghcr.io/osama-qonaibe/sally-academy-search:latest` - Pull prebuilt Docker image
 
 ## Architecture Overview
 
@@ -27,7 +27,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **React 19.0.0** with TypeScript for type safety
 - **Vercel AI SDK 4.3.6** for AI streaming and GenerativeUI
 - **Supabase** for authentication and backend services
-- **Redis** (Upstash or local) for chat history storage
 - **Tailwind CSS** with shadcn/ui components
 
 ### Core Architecture
@@ -60,21 +59,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. **State Management**
    - Server-side state via React Server Components
    - Client-side hooks in `/hooks/`
-   - Redis for persistent chat history
-   - Supabase for user data
+   - Supabase for persistent chat history and user data
 
 ## Environment Configuration
 
 ### Required Variables
 
 ```bash
-OPENAI_API_KEY=      # Default AI provider
+GROQ_API_KEY=        # Default AI provider (free)
 TAVILY_API_KEY=      # Default search provider
 ```
 
 ### Optional Features
 
-- Chat history: Set `NEXT_PUBLIC_ENABLE_SAVE_CHAT_HISTORY=true` and configure Redis
+- Authentication: Configure Supabase credentials
 - Alternative AI providers: Add corresponding API keys (ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, etc.)
 - Alternative search: Configure SEARCH_API and provider-specific settings
 - Sharing: Set `NEXT_PUBLIC_ENABLE_SHARE=true`

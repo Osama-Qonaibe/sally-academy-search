@@ -52,9 +52,8 @@ export async function getChatsPage(
       id: chat.id,
       title: chat.title,
       userId: chat.user_id,
-      messages: chat.messages,
-      createdAt: new Date(chat.created_at),
-      sharePath: chat.share_path
+      messages: [],
+      createdAt: new Date(chat.created_at)
     }))
 
     const nextOffset = data && data.length === limit ? offset + limit : null
@@ -72,20 +71,35 @@ export async function getChat(id: string, userId: string = 'anonymous') {
 
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data: chatData, error: chatError } = await supabase
       .from('chats')
       .select('*')
       .eq('id', id)
+      .eq('user_id', userId)
       .single()
 
-    if (error) throw error
-    if (!data) return null
+    if (chatError) throw chatError
+    if (!chatData) return null
+
+    const { data: messages, error: msgError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', id)
+      .order('created_at', { ascending: true })
+
+    if (msgError) throw msgError
 
     return {
-      ...data,
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      sharePath: data.share_path
+      ...chatData,
+      id: chatData.id,
+      title: chatData.title,
+      userId: chatData.user_id,
+      messages: (messages || []).map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content
+      })),
+      createdAt: new Date(chatData.created_at)
     }
   } catch (error) {
     console.error('Error fetching chat:', error)
@@ -150,18 +164,69 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
 
   try {
     const supabase = await createClient()
-    const { error } = await supabase
+    
+    const { data: existingChat } = await supabase
       .from('chats')
-      .upsert({
-        id: chat.id,
-        user_id: userId,
-        title: chat.title,
-        messages: chat.messages,
-        created_at: chat.createdAt || new Date(),
-        share_path: chat.sharePath
-      })
+      .select('id')
+      .eq('id', chat.id)
+      .single()
 
-    if (error) throw error
+    const chatData = {
+      id: chat.id,
+      user_id: userId,
+      title: chat.title,
+      created_at: chat.createdAt || new Date(),
+      updated_at: new Date()
+    }
+
+    if (existingChat) {
+      const { error: updateError } = await supabase
+        .from('chats')
+        .update(chatData)
+        .eq('id', chat.id)
+
+      if (updateError) throw updateError
+    } else {
+      const { error: insertError } = await supabase
+        .from('chats')
+        .insert(chatData)
+
+      if (insertError) throw insertError
+    }
+
+    if (chat.messages && chat.messages.length > 0) {
+      const { data: existingMessages } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('chat_id', chat.id)
+
+      const existingIds = new Set((existingMessages || []).map(m => m.id))
+      
+      const newMessages = chat.messages
+        .filter(msg => {
+          const msgId = typeof msg.id === 'string' ? msg.id : `${chat.id}-${msg.role}-${Date.now()}`
+          return !existingIds.has(msgId)
+        })
+        .map((msg, index) => {
+          const msgId = typeof msg.id === 'string' ? msg.id : `${chat.id}-${msg.role}-${Date.now()}-${index}`
+          return {
+            id: msgId,
+            chat_id: chat.id,
+            role: msg.role,
+            content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+            created_at: new Date()
+          }
+        })
+
+      if (newMessages.length > 0) {
+        const { error: msgError } = await supabase
+          .from('messages')
+          .insert(newMessages)
+
+        if (msgError) throw msgError
+      }
+    }
+
     return { success: true }
   } catch (error) {
     console.error('Error saving chat:', error)
@@ -172,21 +237,32 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
 export async function getSharedChat(id: string) {
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data: chatData, error: chatError } = await supabase
       .from('chats')
       .select('*')
       .eq('id', id)
-      .not('share_path', 'is', null)
       .single()
 
-    if (error) throw error
-    if (!data) return null
+    if (chatError) throw chatError
+    if (!chatData) return null
+
+    const { data: messages, error: msgError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', id)
+      .order('created_at', { ascending: true })
+
+    if (msgError) throw msgError
 
     return {
-      ...data,
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      sharePath: data.share_path
+      ...chatData,
+      userId: chatData.user_id,
+      messages: (messages || []).map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content
+      })),
+      createdAt: new Date(chatData.created_at)
     }
   } catch (error) {
     return null
@@ -204,7 +280,7 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
     
     const { data, error } = await supabase
       .from('chats')
-      .update({ share_path: sharePath })
+      .update({ updated_at: new Date() })
       .eq('id', id)
       .eq('user_id', userId)
       .select()
@@ -217,7 +293,7 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
       ...data,
       userId: data.user_id,
       createdAt: new Date(data.created_at),
-      sharePath: data.share_path
+      sharePath: sharePath
     }
   } catch (error) {
     console.error('Error sharing chat:', error)

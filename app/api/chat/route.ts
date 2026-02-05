@@ -9,10 +9,10 @@ import { isProviderEnabled } from '@/lib/utils/registry'
 export const maxDuration = 30
 
 const DEFAULT_MODEL: Model = {
-  id: 'gpt-4o-mini',
-  name: 'GPT-4o mini',
-  provider: 'OpenAI',
-  providerId: 'openai',
+  id: 'llama-3.3-70b-versatile',
+  name: 'Llama 3.3 70B',
+  provider: 'Groq',
+  providerId: 'groq',
   enabled: true,
   toolCallType: 'native'
 }

@@ -212,12 +212,16 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
         .delete()
         .eq('chat_id', chat.id)
 
-      const messagesToInsert = chat.messages.map((msg, index) => ({
-        chat_id: chat.id,
-        role: msg.role,
-        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-        created_at: now
-      }))
+      const messagesToInsert = chat.messages.map((msg, index) => {
+        const msgId = `${chat.id}-msg-${index}-${Date.now()}`
+        return {
+          id: msgId,
+          chat_id: chat.id,
+          role: msg.role,
+          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+          created_at: now
+        }
+      })
 
       const { error: msgError } = await supabase
         .from('messages')

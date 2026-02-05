@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { type Chat } from '@/lib/types'
 
 export async function getChats(userId?: string | null) {
-  if (!userId) {
+  if (!userId || userId === 'anonymous') {
     return []
   }
 
@@ -32,9 +32,13 @@ export async function getChatsPage(
   limit = 20,
   offset = 0
 ): Promise<{ chats: Chat[]; nextOffset: number | null }> {
+  if (userId === 'anonymous') {
+    return { chats: [], nextOffset: null }
+  }
+
   try {
     const supabase = await createClient()
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from('chats')
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
@@ -62,6 +66,10 @@ export async function getChatsPage(
 }
 
 export async function getChat(id: string, userId: string = 'anonymous') {
+  if (userId === 'anonymous') {
+    return null
+  }
+
   try {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -88,6 +96,10 @@ export async function getChat(id: string, userId: string = 'anonymous') {
 export async function clearChats(
   userId: string = 'anonymous'
 ): Promise<{ error?: string }> {
+  if (userId === 'anonymous') {
+    return { error: 'Cannot clear chats for anonymous users' }
+  }
+
   try {
     const supabase = await createClient()
     const { error } = await supabase
@@ -109,6 +121,10 @@ export async function deleteChat(
   chatId: string,
   userId = 'anonymous'
 ): Promise<{ error?: string }> {
+  if (userId === 'anonymous') {
+    return { error: 'Cannot delete chats for anonymous users' }
+  }
+
   try {
     const supabase = await createClient()
     const { error } = await supabase
@@ -128,6 +144,10 @@ export async function deleteChat(
 }
 
 export async function saveChat(chat: Chat, userId: string = 'anonymous') {
+  if (userId === 'anonymous') {
+    return { success: false, message: 'Anonymous users cannot save chats' }
+  }
+
   try {
     const supabase = await createClient()
     const { error } = await supabase
@@ -174,6 +194,10 @@ export async function getSharedChat(id: string) {
 }
 
 export async function shareChat(id: string, userId: string = 'anonymous') {
+  if (userId === 'anonymous') {
+    return null
+  }
+
   try {
     const supabase = await createClient()
     const sharePath = `/share/${id}`
